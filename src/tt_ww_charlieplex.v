@@ -9,7 +9,7 @@
 /* (module charlieplex_controller.v)				*/
 /* All it does is to map I/O to the canonical Tiny Tapeout I/O. */
 
-module tt_ww_charlieplex (
+module tt_um_ww_charlieplex (
     input  wire [7:0] ui_in,    // Dedicated inputs
     output wire [7:0] uo_out,   // Dedicated outputs
     input  wire [7:0] uio_in,   // IOs: Input path

@@ -67,7 +67,7 @@ module tt_ww_charlieplex_wrapper (
 
     // Instantiate the Tiny Tapeout project
 
-    tt_ww_charlieplex project (
+    tt_um_ww_charlieplex project (
 	.ui_in({ui_in[7:3], sdo, csb, sck}),	// 8-bit input
 	.uo_out({uo_out[7:1], nc}),	// 8-bit output
 	.uio_in(uio_in),	// 8-bit bidirectional (in)
