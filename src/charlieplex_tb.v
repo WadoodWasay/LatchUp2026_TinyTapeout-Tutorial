@@ -1,4 +1,4 @@
-// Testbench for charlieplex controller using iverilog
+// Testbench for charlieplex controller
 
 `timescale 1 ns / 1 ps
 

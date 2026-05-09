@@ -9,7 +9,7 @@
 /* (module charlieplex_controller.v)				*/
 /* All it does is to map I/O to the canonical Tiny Tapeout I/O. */
 
-module tt_um_ww_charlieplex (
+module tt_ww_charlieplex (
     input  wire [7:0] ui_in,    // Dedicated inputs
     output wire [7:0] uo_out,   // Dedicated outputs
     input  wire [7:0] uio_in,   // IOs: Input path
@@ -33,8 +33,9 @@ module tt_um_ww_charlieplex (
     );
 
     // Currently the SPI is read-only and does not generate an output.
-    // All output signals should be driven to some value whether or not they are
-    // used by the wrapper.
+    // The FPGA wrapper makes that mapping to uo_out[0] anyway, so
+    // drive the signal.  All output signals should be driven to some
+    // value whether or not they are used by the wrapper.
 
     assign uo_out = 0;
 

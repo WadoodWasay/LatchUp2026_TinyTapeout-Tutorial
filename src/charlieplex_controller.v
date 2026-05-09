@@ -18,9 +18,9 @@ module charlieplex_controller (
 
     localparam NUM_PINS = 8;
     localparam NUM_LEDS = 56;
-    localparam GREYSCALE_BITS = 4;
+    localparam GREYSCALE_BITS = 3;
     
-    // frame buffer: 56 LEDs x 4 bits = 224 bits
+    // frame buffer: 56 LEDs x 3 bits = 168 bits
     reg [GREYSCALE_BITS-1:0] brightness [0:NUM_LEDS-1];
     
     // SPI receiver for loading brightness values
@@ -31,7 +31,7 @@ module charlieplex_controller (
     
     wire spi_sclk_rising = spi_sclk && !spi_sclk_prev;
 
-    integer i;
+    integer i, j;
     
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -41,14 +41,14 @@ module charlieplex_controller (
             spi_sclk_prev <= 0;
 	    // Test: set all LEDs to be on by default, with a brightness gradient
 	    for (i = 0; i < NUM_LEDS; i = i + 1)
-	        brightness[i] <= (i < 7)  ? 15 :
-				 (i < 14) ? 11 :
-				 (i < 21) ?  8 :
-				 (i < 28) ?  6 :
-				 (i < 35) ?  4 :
-				 (i < 42) ?  3 :
-				 (i < 49) ?  2 :
-				 1 ;
+	        brightness[i] <= (i < 7)  ?  7 :
+				 (i < 14) ?  6 :
+				 (i < 21) ?  5 :
+				 (i < 28) ?  4 :
+				 (i < 35) ?  3 :
+				 (i < 42) ?  2 :
+				 (i < 49) ?  1 :
+				 0 ;
 
         end else begin
             spi_sclk_prev <= spi_sclk;
@@ -64,7 +64,7 @@ module charlieplex_controller (
 		// store brightness values after 8 bits
                 if (spi_bit_cnt == 3'd7) begin
                     if (spi_led_cnt < NUM_LEDS) begin
-                        brightness[spi_led_cnt] <= {spi_shift_reg[2:0], spi_mosi};
+                        brightness[spi_led_cnt] <= {spi_shift_reg[1:0], spi_mosi};
                     end
                     spi_led_cnt <= spi_led_cnt + 1;
                 end
@@ -128,13 +128,13 @@ module charlieplex_controller (
         
         if (led_on) begin
             // drive anode HIGH, cathode LOW, others Hi-Z
-            for (i = 0; i < 8; i = i + 1) begin
-                if (i == anode_pin) begin
-                    led_out[i] = 1'b1;
-                    led_oe[i] = 1'b1;
-                end else if (i == cathode_pin) begin
-                    led_out[i] = 1'b0;
-                    led_oe[i] = 1'b1;
+            for (j = 0; j < 8; j = j + 1) begin
+                if (j == anode_pin) begin
+                    led_out[j] = 1'b1;
+                    led_oe[j] = 1'b1;
+                end else if (j == cathode_pin) begin
+                    led_out[j] = 1'b0;
+                    led_oe[j] = 1'b1;
                 end
                 // else stays Hi-Z (oe=0)
             end
