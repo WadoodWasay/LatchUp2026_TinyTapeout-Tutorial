@@ -27,9 +27,9 @@ module charlieplex_controller (
     reg [2:0] spi_bit_cnt;
     reg [5:0] spi_led_cnt;
     reg [7:0] spi_shift_reg;
-    reg       spi_sclk_prev;
+    reg [1:0] spi_sclk_prev;
     
-    wire spi_sclk_rising = spi_sclk && !spi_sclk_prev;
+    wire spi_sclk_rising = spi_sclk_prev[0] && !spi_sclk_prev[1];
 
     integer i, j;
     
@@ -51,7 +51,7 @@ module charlieplex_controller (
 				 0 ;
 
         end else begin
-            spi_sclk_prev <= spi_sclk;
+            spi_sclk_prev <= {spi_sclk_prev[0], spi_sclk};
             
             if (spi_cs_n) begin
                 // CS high = idle, reset counters
