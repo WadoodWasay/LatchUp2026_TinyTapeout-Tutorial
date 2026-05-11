@@ -28,6 +28,7 @@ module charlieplex_controller (
     reg [5:0] spi_led_cnt;
     reg [7:0] spi_shift_reg;
     reg [1:0] spi_sclk_prev;
+    reg	      has_address;
     
     wire spi_sclk_rising = spi_sclk_prev[0] && !spi_sclk_prev[1];
 
@@ -39,6 +40,7 @@ module charlieplex_controller (
             spi_led_cnt <= 0;
             spi_shift_reg <= 0;
             spi_sclk_prev <= 0;
+	    has_address <= 0;
 	    // Test: set all LEDs to be on by default, with a brightness gradient
 	    for (i = 0; i < NUM_LEDS; i = i + 1)
 	        brightness[i] <= (i < 7)  ?  7 :
@@ -57,16 +59,24 @@ module charlieplex_controller (
                 // CS high = idle, reset counters
                 spi_bit_cnt <= 0;
                 spi_led_cnt <= 0;
+		has_address <= 1'b0;
             end else if (spi_sclk_rising) begin
                 spi_shift_reg <= {spi_shift_reg[6:0], spi_mosi};
                 spi_bit_cnt <= spi_bit_cnt + 1;
                 
-		// store brightness values after 8 bits
+		// After 8 bits received:
+		// First byte sent:  Set the address (spi_led_cnt).
+		// All other bytes sent:  Store brightness value and increment address
                 if (spi_bit_cnt == 3'd7) begin
-                    if (spi_led_cnt < NUM_LEDS) begin
-                        brightness[spi_led_cnt] <= {spi_shift_reg[1:0], spi_mosi};
-                    end
-                    spi_led_cnt <= spi_led_cnt + 1;
+		    if (has_address == 1'b0) begin
+			spi_led_cnt <= {spi_shift_reg[4:0], spi_mosi};
+			has_address <= 1'b1;
+		    end else begin
+			if (spi_led_cnt < NUM_LEDS) begin
+			    brightness[spi_led_cnt] <= {spi_shift_reg[1:0], spi_mosi};
+			end
+			spi_led_cnt <= spi_led_cnt + 1;
+		    end
                 end
             end
         end
@@ -75,20 +85,22 @@ module charlieplex_controller (
     // BCM Scan Controller
     reg [5:0] led_index;        		// 0-55: LED being addressed
     reg [GREYSCALE_BITS-1:0] on_cnt;    	// counter for time LED is on
-    reg [7:0] base_cnt;				// minimum clocks per LED cycle
+    reg [5:0] base_cnt;				// minimum clocks per LED cycle
     
     // current LED's brightness value
     wire [GREYSCALE_BITS-1:0] current_brightness = brightness[led_index];
     
-    wire led_on = (current_brightness == 0) ? 1'b0 : 1'b1;
+    reg led_on;
     
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             led_index <= 0;
             on_cnt <= 0;
 	    base_cnt <= 0;
+	    led_on <= 1'b0;
         end else if (spi_cs_n) begin
-            if (on_cnt >= current_brightness) begin
+            if (on_cnt == 3'b111 && base_cnt == 6'b111111) begin
+		led_on <= 1'b0;
                 // done with this LED
                 if (led_index == NUM_LEDS - 1) begin
                     // done with all LEDs, move to next bit plane
@@ -96,11 +108,17 @@ module charlieplex_controller (
                 end else begin
                     led_index <= led_index + 1;
                 end
+		base_cnt <= 0;
 		on_cnt <= 0;
-	    end else if (base_cnt == 8'b11111111) begin
+	    end else if (base_cnt == 6'b111111) begin
 		base_cnt <= 0;
 		on_cnt <= on_cnt + 1;
             end else begin
+                if (on_cnt >= current_brightness) begin
+		    led_on <= 1'b0;
+		end else begin
+		    led_on <= 1'b1;
+		end
                 base_cnt <= base_cnt + 1;
             end
         end
