@@ -1,6 +1,6 @@
 // Charlieplex LED Controller for TinyTapeout
-// 8 pins -> 56 LEDs, 4-bit grayscale using BCM
-// MODIFIED BY WADOOD 12/11/2025 for initial version of controller
+// 8 pins -> 56 LEDs, 3-bit grayscale using BCM
+// MODIFIED BY WADOOD 5/12/2026 for initial version of controller
 
 module charlieplex_controller (
     input  wire       clk,
