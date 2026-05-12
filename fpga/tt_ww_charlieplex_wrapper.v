@@ -24,7 +24,7 @@
 module tt_ww_charlieplex_wrapper (
     inout  wire [7:0] uio_inout,  // Bidirectional input and output (JB PMOD)
     input  wire [7:0] ui_in,	  // (Unused) input (JA PMOD)
-    output wire [7:0] uo_out,	  // (Unused) output (JC PMOD)
+    output wire [7:0] uo_out,	  // (Diagnostic) output (JC PMOD)
     input  wire       clk,        // clock
     input  wire       rst_n,      // reset - low to reset
     input  wire	      ser_rx_in,  // UART input from FTDI on Arty board
@@ -63,13 +63,13 @@ module tt_ww_charlieplex_wrapper (
     wire [7:0] uio_out;
 
     wire sdo, csb, sck;		// Re-routed signals
-    wire nc;			// Internally unconnected signal
+    wire [3:0] nc;		// Internally unconnected signal
 
     // Instantiate the Tiny Tapeout project
 
     tt_um_ww_charlieplex project (
 	.ui_in({ui_in[7:3], sdo, csb, sck}),	// 8-bit input
-	.uo_out({uo_out[7:1], nc}),	// 8-bit output
+	.uo_out({uo_out[7:4], nc}),	// 8-bit output
 	.uio_in(uio_in),	// 8-bit bidirectional (in)
 	.uio_out(uio_out),	// 8-bit bidirectional (out)
 	.uio_oe(uio_oe),	// 8-bit bidirectional (enable)
@@ -84,11 +84,19 @@ module tt_ww_charlieplex_wrapper (
 	.resetn(rst_n),
 	.ser_tx(ser_tx_out),
 	.ser_rx(ser_rx_in),
-	.spi_sdo(sdo),
+	.spi_sdo(1'b0),
 	.spi_csb(csb),
-	.spi_sdi(uo_out[0]),
+	.spi_sdi(sdo),
 	.spi_sck(sck)
     );
+
+    // Diagnostic output (for debugging)
+    assign uo_out[0] = ser_rx_in;
+    assign uo_out[1] = sdo;
+    assign uo_out[2] = sck;
+    assign uo_out[3] = csb;
+
+    // Copy signals from the UART/SPI interface for debugging
 
     // Handle bidirectional I/Os
     generate
