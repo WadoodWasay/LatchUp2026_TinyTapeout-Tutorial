@@ -1,6 +1,8 @@
 // Charlieplex LED Controller for TinyTapeout
 // 8 pins -> 56 LEDs, 3-bit grayscale using BCM
-// MODIFIED BY WADOOD 5/12/2026 for initial version of controller
+// MODIFIED BY WADOOD 5/14/2026 fixed bug in the default pattern (was
+// displaying only 1 pixel of the 7th row because pixels were organized into
+// rows of 7 instead of 8)
 
 module charlieplex_controller (
     input  wire       clk,
@@ -43,14 +45,13 @@ module charlieplex_controller (
 	    has_address <= 0;
 	    // Test: set all LEDs to be on by default, with a brightness gradient
 	    for (i = 0; i < NUM_LEDS; i = i + 1)
-	        brightness[i] <= (i < 7)  ?  7 :
-				 (i < 14) ?  6 :
-				 (i < 21) ?  5 :
-				 (i < 28) ?  4 :
-				 (i < 35) ?  3 :
-				 (i < 42) ?  2 :
-				 (i < 49) ?  1 :
-				 0 ;
+	        brightness[i] <= (i < 8)  ?  7 :
+				 (i < 15) ?  6 :
+				 (i < 23) ?  5 :
+				 (i < 31) ?  4 :
+				 (i < 39) ?  3 :
+				 (i < 47) ?  2 :
+				 1 ;
 
         end else begin
             spi_sclk_prev <= {spi_sclk_prev[0], spi_sclk};

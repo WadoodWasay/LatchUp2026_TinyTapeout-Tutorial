@@ -93,7 +93,7 @@ while (k != 'q'):
         for i in range(0, len(xvals)):
             idx = yvals[i] * 8 + xvals[i]
             c = chr(remap[idx])
-            port.write(c + '\x01')
+            port.write(c + '\x07')
             port.read(2)
 
     elif k == '4':
